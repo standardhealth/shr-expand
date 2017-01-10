@@ -688,7 +688,7 @@ describe('#expand()', () => {
     expect(eSubA.fields).to.be.empty;
   });
 
-  it('should allow valueset constraints to override prior valueset constraints on values', () => {
+  it('should allow valueset constraints to override prior valueset constraints on fields', () => {
     let ns = new models.Namespace('shr.test');
     let a = new models.DataElement(id(ns.namespace, 'A'), true)
       .withField(
@@ -858,6 +858,466 @@ describe('#expand()', () => {
       new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
         .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
     ]);
+  });
+
+  // Valid Code Constraints
+
+  it('should keep valid code constraints on values', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1));
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+        .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    );
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should allow code constraints to override prior code constraints on values', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'baz', 'FooBaz')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+        .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'baz', 'FooBaz')))
+    );
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should consolidate code constraints on value specifying the same code', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+        .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    );
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should keep valid code constraints on fields', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withField(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1));
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+        .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    ]);
+  });
+
+  it('should allow code constraints to override prior code constraints on fields', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'baz', 'FooBaz')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+        .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'baz', 'FooBaz')))
+    ]);
+  });
+
+  it('should consolidate code constraints on a field specifying the same code', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
+        .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    ]);
+  });
+
+  // Invalid Code Constraints
+
+  it('should report an error when putting a code constraint on a non-code value', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withValue(new models.IdentifiableValue(pid('string')).withMinMax(0, 1));
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withValue(
+        new models.IdentifiableValue(pid('string')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns]);
+
+    expect(result.errors).to.have.length(1);
+    expect(result.errors[0].message).to.contain('code').and.to.contain('string');
+    expect(result.namespaces).to.have.length(1);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(new models.IdentifiableValue(pid('string')).withMinMax(0, 1)); // No constraint
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should report an error when putting a code constraint on a non-code field', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withField(new models.IdentifiableValue(id(ns.namespace, 'AFieldA')).withMinMax(0, 1));
+    ns.addDefinition(a);
+    ns.addDefinition(simpleDE(ns.namespace, 'AFieldA'));
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withField(
+        new models.IdentifiableValue(id(ns.namespace, 'AFieldA')).withMinMax(0, 1)
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns]);
+
+    expect(result.errors).to.have.length(1);
+    expect(result.errors[0].message).to.contain('code').and.to.contain('AFieldA');
+    expect(result.namespaces).to.have.length(1);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([new models.IdentifiableValue(id(ns.namespace, 'AFieldA')).withMinMax(0, 1)]); // No constraint
+  });
+
+    // Valid Includes Code Constraints
+
+  it('should keep valid includes code constraints on values', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    );
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should allow multiple includes code constraints on values', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'baz', 'FooBaz')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'baz', 'FooBaz')))
+    );
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should consolidate includes code constraints on value specifying the same code', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    );
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should keep valid includes code constraints on fields', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withField(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    ]);
+  });
+
+  it('should allow multiple includes code constraints on fields', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'baz', 'FooBaz')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'baz', 'FooBaz')))
+    ]);
+  });
+
+  it('should consolidate includes code constraints on a field specifying the same code', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withField(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns, dummyCoreNS()]);
+
+    expect(result.errors).to.be.empty;
+    expect(result.namespaces).to.have.length(2);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    ]);
+  });
+
+  // Invalid Includes Code Constraints
+
+  it('should report an error when putting an includes code constraint on a non-code value', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withValue(new models.IdentifiableValue(pid('string')).withMinMax(1));
+    ns.addDefinition(a);
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withValue(
+        new models.IdentifiableValue(pid('string')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns]);
+
+    expect(result.errors).to.have.length(1);
+    expect(result.errors[0].message).to.contain('code').and.to.contain('string');
+    expect(result.namespaces).to.have.length(1);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(new models.IdentifiableValue(pid('string')).withMinMax(1)); // No constraint
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should report an error when putting an includes code constraint on a non-code field', () => {
+    let ns = new models.Namespace('shr.test');
+    let a = new models.DataElement(id(ns.namespace, 'A'), true)
+      .withField(new models.IdentifiableValue(id(ns.namespace, 'AFieldA')).withMinMax(1));
+    ns.addDefinition(a);
+    ns.addDefinition(simpleDE(ns.namespace, 'AFieldA'));
+    let subA = new models.DataElement(id(ns.namespace, 'SubA'), true)
+      .withBasedOn(id(ns.namespace, 'A'))
+      .withField(
+        new models.IdentifiableValue(id(ns.namespace, 'AFieldA')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    ns.addDefinition(subA);
+
+    const result = expand([ns]);
+
+    expect(result.errors).to.have.length(1);
+    expect(result.errors[0].message).to.contain('code').and.to.contain('AFieldA');
+    expect(result.namespaces).to.have.length(1);
+    const eSubA = result.namespaces[0].lookup('SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([new models.IdentifiableValue(id(ns.namespace, 'AFieldA')).withMinMax(1)]); // No constraint
   });
 });
 
