@@ -100,6 +100,29 @@ describe('#expandMap()', () => {
     );
   });
 
+  it('should support cardinality rules', () => {
+    const a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.IdentifiableValue(pid('string')).withMinMax(1, 1))
+      .withField(new models.IdentifiableValue(id('shr.test.b', 'B')).withMinMax(1, 1))
+      .withField(new models.IdentifiableValue(id('shr.test.c', 'C')).withMinMax(1, 1))
+      .withField(new models.IdentifiableValue(id('shr.test.d', 'D')).withMinMax(1, 1));
+    const ma = new models.ElementMapping(id('shr.test', 'A'), 'TEST', 'a')
+      .withFieldToFieldMappingRule([sid('B')], ['b'])
+      .withTargetCardinalityMappingRule(['z'], new models.Cardinality(1, 2));
+    add(a, ma);
+
+    doExpand();
+
+    expect(errors()).to.be.empty;
+    const eMa = findExpanded('TEST', 'shr.test', 'A');
+    expect(eMa).to.eql(
+      new models.ElementMapping(id('shr.test', 'A'), 'TEST', 'a')
+        .withFieldToFieldMappingRule([id('shr.test.b', 'B')], ['b'])
+        .withTargetCardinalityMappingRule(['z'], new models.Cardinality(1, 2))
+    );
+  });
+
+
   it('should inherit mappings from based on elements', () => {
     const a = new models.DataElement(id('shr.test', 'A'), true)
       .withValue(new models.IdentifiableValue(pid('string')).withMinMax(1, 1))
@@ -115,7 +138,8 @@ describe('#expandMap()', () => {
     const ma = new models.ElementMapping(id('shr.test', 'A'), 'TEST', 'a')
       .withFieldToFieldMappingRule([sid('B')], ['b']);
     const ma2 = new models.ElementMapping(id('shr.test', 'A2'), 'TEST')
-      .withFieldToURLMappingRule([id('shr.test.d', 'D')], 'http://test.org/d');
+      .withFieldToURLMappingRule([id('shr.test.d', 'D')], 'http://test.org/d')
+      .withTargetCardinalityMappingRule(['z'], new models.Cardinality(1, 2));
     const ma3 = new models.ElementMapping(id('shr.test', 'A3'), 'TEST')
       .withFieldToFieldMappingRule([sid('E')], ['e']);
     add(a, a2, a3, ma, ma2, ma3);
@@ -133,12 +157,14 @@ describe('#expandMap()', () => {
       new models.ElementMapping(id('shr.test', 'A2'), 'TEST', 'a')
         .withFieldToFieldMappingRule([id('shr.test.b', 'B')], ['b'])
         .withFieldToURLMappingRule([id('shr.test.d', 'D')], 'http://test.org/d')
+        .withTargetCardinalityMappingRule(['z'], new models.Cardinality(1, 2))
     );
     const eMa3 = findExpanded('TEST', 'shr.test', 'A3');
     expect(eMa3).to.eql(
       new models.ElementMapping(id('shr.test', 'A3'), 'TEST', 'a')
         .withFieldToFieldMappingRule([id('shr.test.b', 'B')], ['b'])
         .withFieldToURLMappingRule([id('shr.test.d', 'D')], 'http://test.org/d')
+        .withTargetCardinalityMappingRule(['z'], new models.Cardinality(1, 2))
         .withFieldToFieldMappingRule([id('shr.test.e', 'E')], ['e'])
     );
   });
