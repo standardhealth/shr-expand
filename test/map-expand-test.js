@@ -287,6 +287,7 @@ describe('#expandMap()', () => {
     const eMa2 = findExpanded('TEST', 'shr.test', 'A2');
     expect(eMa2).to.eql(
       new models.ElementMapping(id('shr.test', 'A2'), 'TEST', 'a2')
+        .withFieldMappingRule([id('shr.test.b', 'B')], 'b')
         .withFieldMappingRule([pid('string')], 'str')
         .withFieldMappingRule([id('shr.test.d', 'D')], 'http://test.org/d')
     );
