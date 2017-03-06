@@ -17,7 +17,7 @@
     "lint:fix": "./node_modules/.bin/eslint . --fix"
   },
   "dependencies": {
-    "shr-models": "standardhealth/shr-models#grammar_4_map"
+    "shr-models": "~4.1.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
