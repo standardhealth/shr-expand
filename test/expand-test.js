@@ -932,6 +932,38 @@ describe('#expand()', () => {
     expect(eSubA.fields).to.be.empty;
   });
 
+  it('should qualify unqualified code constraints on values when possible', () => {
+    // Need to add the value set to allow the resolution to occur
+    const vs = new models.ValueSet(id('shr.test', 'FooVS'), 'http://foo.org/valueset');
+    vs.addValueSetIncludesCodeRule(new models.Concept('http://foo.org/codes', 'bar', 'FooBar'));
+    _specs.valueSets.add(vs);
+
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org/valueset'))
+      );
+    let subA = new models.DataElement(id('shr.test', 'SubA'), true)
+      .withBasedOn(id('shr.test', 'A'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.CodeConstraint(new models.Concept(null, 'bar')))
+      );
+    add(a, subA);
+
+    doExpand();
+
+    expect(errors()).to.be.empty;
+    const eSubA = findExpanded('shr.test', 'SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org/valueset'))
+        .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar')))
+    );
+    expect(eSubA.fields).to.be.empty;
+  });
+
   it('should make implicit value code constraints explicit on values', () => {
     let a = new models.DataElement(id('shr.test', 'A'), true)
       .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1));
@@ -1226,6 +1258,38 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(
       new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
         .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+    );
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should qualify unqualified includes code constraints on values when possible', () => {
+    // Need to add the value set to allow the resolution to occur
+    const vs = new models.ValueSet(id('shr.test', 'FooVS'), 'http://foo.org/valueset');
+    vs.addValueSetIncludesCodeRule(new models.Concept('http://foo.org/codes', 'bar', 'FooBar'));
+    _specs.valueSets.add(vs);
+
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org/valueset'))
+      );
+    let subA = new models.DataElement(id('shr.test', 'SubA'), true)
+      .withBasedOn(id('shr.test', 'A'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+          .withConstraint(new models.IncludesCodeConstraint(new models.Concept(null, 'bar')))
+      );
+    add(a, subA);
+
+    doExpand();
+
+    expect(errors()).to.be.empty;
+    const eSubA = findExpanded('shr.test', 'SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org/valueset'))
+        .withConstraint(new models.IncludesCodeConstraint(new models.Concept('http://foo.org/codes', 'bar')))
     );
     expect(eSubA.fields).to.be.empty;
   });
