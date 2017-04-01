@@ -1,11 +1,16 @@
 const {expect} = require('chai');
-const {expand} = require('../index');
+const {expand, setLogger} = require('../index');
 const models = require('shr-models');
+const err = require('shr-test-helpers/errors');
+
+// Set the logger -- this is needed for detecting and checking errors
+setLogger(err.logger());
 
 let _specs, _result;
 
 describe('#expand()', () => {
   beforeEach(function() {
+    err.clear();
     _specs = new models.Specifications();
     // The SHR test namespace used by most tests
     _specs.namespaces.add(new models.Namespace('shr.core'));
@@ -35,7 +40,7 @@ describe('#expand()', () => {
     doExpand();
 
     // No errors
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
 
     // Originals should be the same as they were
     expect(a).to.eql(aClone);
@@ -65,7 +70,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -88,7 +93,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -108,7 +113,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -128,7 +133,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -146,8 +151,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('override').and.to.contain('string').and.to.contain('decimal');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('override').and.to.contain('string').and.to.contain('decimal');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -166,7 +171,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -189,7 +194,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -210,7 +215,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -235,7 +240,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -257,8 +262,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('cardinality').and.to.contain('0..1').and.to.contain('1..2');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('cardinality').and.to.contain('0..1').and.to.contain('1..2');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -286,8 +291,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('cardinality').and.to.contain('0..1').and.to.contain('1..2');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('cardinality').and.to.contain('0..1').and.to.contain('1..2');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -315,8 +320,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('cardinality').and.to.contain('1..1').and.to.contain('1..*');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('cardinality').and.to.contain('1..1').and.to.contain('1..*');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -337,8 +342,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('cardinality').and.to.contain('1..1').and.to.contain('0..1');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('cardinality').and.to.contain('1..1').and.to.contain('0..1');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -366,8 +371,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('cardinality').and.to.contain('0..1').and.to.contain('1..2');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('cardinality').and.to.contain('0..1').and.to.contain('1..2');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -395,8 +400,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('cardinality').and.to.contain('1..1').and.to.contain('1..*');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('cardinality').and.to.contain('1..1').and.to.contain('1..*');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -426,7 +431,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -453,7 +458,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.eql(
@@ -482,7 +487,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eY = findExpanded('shr.test', 'Y');
     expect(eY.identifier).to.eql(id('shr.test', 'Y'));
     expect(eY.value).to.eql(
@@ -509,7 +514,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -536,7 +541,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.be.undefined;
@@ -565,8 +570,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('type').and.to.contain('shr.test.B').and.to.contain('shr.test.NotSubB');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('type').and.to.contain('shr.test.B').and.to.contain('shr.test.NotSubB');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -597,8 +602,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('type').and.to.contain('shr.test.SubB').and.to.contain('shr.test.SubB2');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('type').and.to.contain('shr.test.SubB').and.to.contain('shr.test.SubB2');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -626,8 +631,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('type').and.to.contain('shr.test.B').and.to.contain('shr.test.NotSubB');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('type').and.to.contain('shr.test.B').and.to.contain('shr.test.NotSubB');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -660,8 +665,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('type').and.to.contain('shr.test.SubB').and.to.contain('shr.test.SubB2');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('type').and.to.contain('shr.test.SubB').and.to.contain('shr.test.SubB2');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -687,7 +692,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -714,7 +719,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -741,7 +746,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -768,7 +773,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -792,7 +797,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -818,8 +823,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('valueset').and.to.contain('string');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('valueset').and.to.contain('string');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -843,8 +848,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('valueset').and.to.contain('Coding').and.to.contain('code');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('valueset').and.to.contain('Coding').and.to.contain('code');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -869,8 +874,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('valueset').and.to.contain('AFieldA');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('valueset').and.to.contain('AFieldA');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -894,8 +899,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('valueset').and.to.contain('Coding').and.to.contain('code');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('valueset').and.to.contain('Coding').and.to.contain('code');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -921,7 +926,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -952,7 +957,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -976,7 +981,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.eql(
@@ -998,7 +1003,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.eql(
@@ -1024,7 +1029,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1051,7 +1056,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1078,7 +1083,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1102,7 +1107,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1125,7 +1130,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.be.undefined;
@@ -1151,7 +1156,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1178,7 +1183,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1204,8 +1209,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('code').and.to.contain('string');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('code').and.to.contain('string');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1227,8 +1232,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('code').and.to.contain('AFieldA');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('code').and.to.contain('AFieldA');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1251,7 +1256,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1282,7 +1287,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1306,7 +1311,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.eql(
@@ -1328,7 +1333,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.eql(
@@ -1354,7 +1359,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1382,7 +1387,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1410,7 +1415,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1434,7 +1439,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1457,7 +1462,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.be.undefined;
@@ -1483,7 +1488,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1511,7 +1516,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1537,8 +1542,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('code').and.to.contain('string');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('code').and.to.contain('string');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1560,8 +1565,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('code').and.to.contain('AFieldA');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('code').and.to.contain('AFieldA');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1584,7 +1589,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1607,7 +1612,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eX = findExpanded('shr.test', 'X');
     expect(eX.identifier).to.eql(id('shr.test', 'X'));
     expect(eX.value).to.eql(
@@ -1633,7 +1638,7 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.be.empty;
+    expect(err.hasErrors()).to.be.false;
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1662,8 +1667,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('boolean').and.to.contain('value');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('boolean').and.to.contain('value');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1687,8 +1692,8 @@ describe('#expand()', () => {
 
     doExpand();
 
-    expect(errors()).to.have.length(1);
-    expect(errors()[0].message).to.contain('code').and.to.contain('string');
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('code').and.to.contain('string');
     const eSubA = findExpanded('shr.test', 'SubA');
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
@@ -1726,9 +1731,5 @@ function doExpand() {
 }
 
 function findExpanded(namespace, name) {
-  return _result.specifications.dataElements.find(namespace, name);
-}
-
-function errors() {
-  return _result.errors;
+  return _result.dataElements.find(namespace, name);
 }
