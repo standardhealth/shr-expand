@@ -13,7 +13,7 @@ describe('#expand()', () => {
     err.clear();
     _specs = new models.Specifications();
     // The SHR test namespace used by most tests
-    _specs.namespaces.add(new models.Namespace('shr.core'));
+    _specs.namespaces.add(new models.Namespace('shr.test'));
     // A core namespace and Coding / CodeableConcept data elements needed by some tests
     _specs.namespaces.add(new models.Namespace('shr.core'));
     _specs.dataElements.add(new models.DataElement(id('shr.core', 'Coding'), false));
@@ -808,9 +808,88 @@ describe('#expand()', () => {
     ]);
   });
 
+  it('should move a valueset constraint from a non-code value to its code path', () => {
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org')));
+    let b = new models.DataElement(id('shr.test', 'B'), true)
+      .withValue(new models.IdentifiableValue(pid('code')).withMinMax(0, 1));
+    add(a, b);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eA = findExpanded('shr.test', 'A');
+    expect(eA.identifier).to.eql(id('shr.test', 'A'));
+    expect(eA.value).to.eql(
+      new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org', [pid('code')]))
+    ); // Constraint on 'code' path
+    expect(eA.fields).to.be.empty;
+    const eB = findExpanded('shr.test', 'B');
+    expect(eB.identifier).to.eql(id('shr.test', 'B'));
+    expect(eB.value).to.eql(new models.IdentifiableValue(pid('code')).withMinMax(0, 1)); // No constraint
+    expect(eB.fields).to.be.empty;
+  });
+
+  it('should move a valueset constraint from a non-code field to its code path', () => {
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withField(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org')));
+    let b = new models.DataElement(id('shr.test', 'B'), true)
+      .withValue(new models.IdentifiableValue(pid('code')).withMinMax(0, 1));
+    add(a, b);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eA = findExpanded('shr.test', 'A');
+    expect(eA.identifier).to.eql(id('shr.test', 'A'));
+    expect(eA.value).to.be.undefined;
+    expect(eA.fields).to.eql([
+      new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org', [pid('code')]))
+    ]); // Constraint on 'code' path
+    const eB = findExpanded('shr.test', 'B');
+    expect(eB.identifier).to.eql(id('shr.test', 'B'));
+    expect(eB.value).to.eql(new models.IdentifiableValue(pid('code')).withMinMax(0, 1)); // No constraint
+    expect(eB.fields).to.be.empty;
+  });
+
+  it('should move a valueset constraint from a non-code value on its base to its code path', () => {
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.test', 'SubB')).withMinMax(0, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org')));
+    let b = new models.DataElement(id('shr.test', 'B'), true)
+      .withValue(new models.IdentifiableValue(pid('code')).withMinMax(0, 1));
+    let subB = new models.DataElement(id('shr.test', 'SubB'), true)
+      .withBasedOn(id('shr.test', 'B'));
+    add(a, b, subB);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eA = findExpanded('shr.test', 'A');
+    expect(eA.identifier).to.eql(id('shr.test', 'A'));
+    expect(eA.value).to.eql(
+      new models.IdentifiableValue(id('shr.test', 'SubB')).withMinMax(0, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org', [pid('code')]))
+    ); // Constraint on 'code' path
+    expect(eA.fields).to.be.empty;
+    const eB = findExpanded('shr.test', 'B');
+    expect(eB.identifier).to.eql(id('shr.test', 'B'));
+    expect(eB.value).to.eql(new models.IdentifiableValue(pid('code')).withMinMax(0, 1)); // No constraint
+    expect(eB.fields).to.be.empty;
+    const eSubB = findExpanded('shr.test', 'SubB');
+    expect(eSubB.identifier).to.eql(id('shr.test', 'SubB'));
+    expect(eSubB.basedOn).to.eql([id('shr.test', 'B')]);
+    expect(eSubB.value).to.eql(new models.IdentifiableValue(pid('code')).withMinMax(0, 1)); // No constraint
+    expect(eSubB.fields).to.be.empty;
+  });
+
   // Invalid ValueSet Constraints
 
-  it('should report an error when putting a valueset constraint on a non-code value', () => {
+  it('should report an error when putting a valueset constraint on a non-code value with a non-code value of its own', () => {
     let a = new models.DataElement(id('shr.test', 'A'), true)
       .withValue(new models.IdentifiableValue(pid('string')).withMinMax(0, 1));
     let subA = new models.DataElement(id('shr.test', 'SubA'), true)
@@ -860,7 +939,7 @@ describe('#expand()', () => {
     expect(eSubA.fields).to.be.empty;
   });
 
-  it('should report an error when putting a valueset constraint on a non-code field', () => {
+  it('should report an error when putting a valueset constraint on a non-code field with a non-code value of its own', () => {
     let a = new models.DataElement(id('shr.test', 'A'), true)
       .withField(new models.IdentifiableValue(id('shr.test', 'AFieldA')).withMinMax(0, 1));
     add(simpleDE('shr.test', 'AFieldA'));
