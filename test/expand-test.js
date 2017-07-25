@@ -858,6 +858,97 @@ describe('#expand()', () => {
     );
   });
 
+  it('should allow fields to includes types with properly fitting cardinality', () => {
+    let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. Observation
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+    let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.
+      .withBasedOn(id('shr.test', 'B'))
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withField(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(1, 1)
+        .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(1, 1))));
+
+    add(subB, b, a);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eA = findExpanded('shr.test', 'A');
+    expect(eA.identifier).to.eql(id('shr.test', 'A'));
+    expect(eA.value).to.be.undefined;
+    expect(eA.fields).to.eql([
+      new models.IdentifiableValue((id('shr.test', 'B'))).withMinMax(1, 1)
+        .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(1, 1)))
+    ]);
+  });
+
+  // it('should allow fields with a layer deep path to includes types with properly fitting cardinality', () => {
+  //   let c = new models.DataElement(id('shr.test', 'C'), true) //e.g. Observation
+  //     .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0,5));
+  //   let subC = new models.DataElement(id('shr.test', 'subC'), true) //e.g. BreastTumorCategory,etc.
+  //     .withBasedOn(id('shr.test', 'C'));
+
+  //   let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. Panelmembers
+  //     .withField(new models.IdentifiableValue(id('shr.test', 'C')).withMinMax(0,4));
+    
+  //   let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. Stage
+  //     .withField(new models.IdentifiableValue(id('shr.core', 'subB')).withMinMax(0,3)
+  //   );
+
+  //   let a = new models.DataElement(id('shr.test', 'A'), true)
+  //     .withBasedOn(id('shr.test', 'B'))
+  //     .withField(new models.IdentifiableValue(id('shr.test', 'C')).withMinMax(1,2)
+  //       .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subC'), new models.Cardinality(1, 1)))
+  //     );
+
+  //   add(subB, b, a, c,subC);
+
+  //   doExpand();
+
+  //   expect(err.hasErrors()).to.be.true;
+  //   expect(err.errors()[0].msg).to.contain('valueset').and.to.contain('string');
+  //   const eA = findExpanded('shr.test', 'A');
+  //   // expect(eA.identifier).to.eql(id('shr.test', 'A'));
+  //   // expect(eA.value).to.be.undefined;
+  //   // expect(eA.fields).to.eql([
+  //   //   new models.IdentifiableValue((id('shr.test', 'B'))).withMinMax(1, 1)
+  //   //     .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(1, 1)))
+  //   // ]);
+
+  // });
+
+  //it('should allow fields with a very deep path to includes types with properly fitting cardinality', () => {});
+
+  it('should allow values to include types with properly fitting cardinality', () => {
+    let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. Observation
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+    let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.
+      .withBasedOn(id('shr.test', 'B'))
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(1, 1))));
+
+    add(subB, b, a);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eA = findExpanded('shr.test', 'A');
+    expect(eA.identifier).to.eql(id('shr.test', 'A'));
+    expect(eA.fields).to.be.empty;
+    expect(eA.value).to.eql(
+      new models.IdentifiableValue((id('shr.test', 'B'))).withMinMax(0, 1)
+        .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(1, 1)))
+    );
+  });
+
+  //it('should allow values with a 2 deep path to includes types with properly fitting cardinality', () => {});
+
+  //it('should allow values with a very deep path to includes types with properly fitting cardinality', () => {});
+
   // Invalid Includes Type Constraints
 
   it('should report an error when value includes an element of different type', () => {
@@ -991,8 +1082,31 @@ describe('#expand()', () => {
     ]);
   }); 
 
-//TODO: it('should report an error when field includes an element with mismatched cardinality', () => {
-  // });
+  it('should report an error when field includes an element with mismatched cardinality', () => {
+    let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. Observation
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0,1));
+    
+    let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.
+      .withBasedOn(id('shr.test', 'B'))
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0,1));
+
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withField(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(1, 1)
+          .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(1, 2))));
+
+    add(subB, b, a);
+
+    doExpand();
+
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('Cannot include cardinality').and.to.contain(b.identifier.fqn);
+    const eA = findExpanded('shr.test', 'A');
+    expect(eA.identifier).to.eql(id('shr.test', 'A'));
+    expect(eA.value).to.be.undefined;
+    expect(eA.fields).to.eql([
+      new models.IdentifiableValue((id('shr.test', 'B'))).withMinMax(1, 1) 
+    ]);
+  });
 
   // Valid ValueSet Constraints
 
