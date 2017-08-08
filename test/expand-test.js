@@ -708,6 +708,33 @@ describe('#expand()', () => {
     );
   });
 
+  it('should keep valid includes type constraints on fields', () => {
+    let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. PanelMembers.Observation
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+    let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.
+      .withBasedOn(id('shr.test', 'B'))
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+    let a = new models.DataElement(id('shr.test', 'A'), true) //e.g. BreastCancerStage
+      .withField(
+      new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(
+        new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(0, 1)))
+      );
+
+    add(subB, b, a);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eA = findExpanded('shr.test', 'A');
+    expect(eA.identifier).to.eql(id('shr.test', 'A'));
+    expect(eA.value).to.be.undefined;
+    expect(eA.fields).to.eql([
+      new models.IdentifiableValue((id('shr.test', 'B'))).withMinMax(0, 1)
+        .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(0, 1)))
+    ]);
+  });
+
   it('should keep valid includes type constraints on inherited values', () => {
     let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. PanelMembers.Observation
       .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
@@ -980,7 +1007,7 @@ describe('#expand()', () => {
 
   });
 
-  it('should report an error when includes type constraint is placed for a second time on inherited value', () => {
+/*  it('should report an error when includes type constraint is placed for a second time on inherited value', () => {
     let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. PanelMembers.Observation
       .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
     let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.    
@@ -1015,24 +1042,30 @@ describe('#expand()', () => {
       new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
         .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(0, 1)))
     );
-  }); 
+  }); */
 
   it('should report an error when field includes an element of different type', () => {
+    let c = new models.DataElement(id('shr.test', 'C'), true) //e.g.
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+    
     let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. PanelMembers.Observation
       .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
-    let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.    
+    
+    let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.
       .withBasedOn(id('shr.test', 'B'))
       .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
 
-    let c = new models.DataElement(id('shr.test', 'C'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.
-      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
-
-    let a = new models.DataElement(id('shr.test', 'A'), true)
-      .withField(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
-        .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'C'), new models.Cardinality(0, 1)))
+    let a = new models.DataElement(id('shr.test', 'A'), true) //e.g. BreastCancerStage
+      .withField(
+        new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+          .withConstraint(
+            new models.IncludesTypeConstraint(id('shr.test', 'C'), new models.Cardinality(0, 1)))
       );
 
-    add(b, subB, c, a);
+    add(subB, b, a, c);
+
+    // doExpand();
+    // add(b, c, a);
 
     doExpand();
 
@@ -1045,7 +1078,7 @@ describe('#expand()', () => {
       new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)]);
   });
 
-  it('should report an error when includes type constraint is placed for a second time on inherited field', () => {
+/*  it('should report an error when includes type constraint is placed for a second time on inherited field', () => {
     let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. PanelMembers.Observation
       .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
     let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.    
@@ -1080,7 +1113,7 @@ describe('#expand()', () => {
       new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
         .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(0, 1)))
     ]);
-  }); 
+  }); */
 
   it('should report an error when field includes an element with mismatched cardinality', () => {
     let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. Observation
