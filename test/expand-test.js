@@ -1399,6 +1399,33 @@ describe('#expand()', () => {
     expect(eSubB.fields).to.be.empty;
   });
 
+  it('should correctly apply value set constraints when value keyword is used', () => {
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(1, 1));
+    let subA = new models.DataElement(id('shr.test', 'SubA'), true)
+      .withBasedOn(id('shr.test', 'A'))
+      .withValue(
+        new models.IncompleteValue(id('', 'Value'))
+          .withConstraint(new models.ValueSetConstraint('http://foo.org'))
+      );
+    let b = new models.DataElement(id('shr.test', 'B'), true)
+      .withValue(new models.IdentifiableValue(pid('code')).withMinMax(1, 1));
+    add(a, subA, b);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eSubA = findExpanded('shr.test', 'SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).not.to.be.instanceof(models.IncompleteValue);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(1, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org', [pid('code')]))
+      );
+    expect(eSubA.fields).to.be.empty;
+  });
+
   // Invalid ValueSet Constraints
 
   it('should report an error when putting a valueset constraint on a non-code value with a non-code value of its own', () => {
@@ -1682,6 +1709,35 @@ describe('#expand()', () => {
       new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(0, 1)
         .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
     );
+    expect(eSubA.fields).to.be.empty;
+  });
+
+  it('should correctly apply code constraints when value keyword is used', () => {
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(1, 1));
+    let subA = new models.DataElement(id('shr.test', 'SubA'), true)
+      .withBasedOn(id('shr.test', 'A'))
+      .withValue(
+        new models.IncompleteValue(id('', 'Value'))
+          .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar')))
+      );
+    let b = new models.DataElement(id('shr.test', 'B'), true)
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org/vs'))
+      );
+    add(a, subA, b);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eSubA = findExpanded('shr.test', 'SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).not.to.be.instanceof(models.IncompleteValue);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(1, 1)
+        .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar'), [id('shr.core', 'Coding')]))
+      );
     expect(eSubA.fields).to.be.empty;
   });
 
