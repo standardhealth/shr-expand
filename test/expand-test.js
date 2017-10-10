@@ -3,12 +3,14 @@ const {expand, setLogger} = require('../index');
 const models = require('shr-models');
 const err = require('shr-test-helpers/errors');
 
-// Set the logger -- this is needed for detecting and checking errors
-setLogger(err.logger());
-
 let _specs, _result;
 
 describe('#expand()', () => {
+  before(function() {
+    // Set the logger -- this is needed for detecting and checking errors
+    setLogger(err.logger());
+  });
+
   beforeEach(function() {
     err.clear();
     _specs = new models.Specifications();
