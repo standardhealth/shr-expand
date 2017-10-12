@@ -19,6 +19,9 @@ describe('#expandMap()', () => {
     // A core namespace and Coding data element needed by some tests
     _specs.namespaces.add(new models.Namespace('shr.core'));
     _specs.dataElements.add(new models.DataElement(id('shr.core', 'Coding'), false));
+    // A degenerate shr.base.Entry is needed to avoid warnings, which are considered illegal in this test.
+    _specs.namespaces.add(new models.Namespace('shr.base'));
+    _specs.dataElements.add(new models.DataElement(id('shr.base', 'Entry'), false));
   });
 
   afterEach(function() {
