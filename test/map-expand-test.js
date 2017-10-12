@@ -15,7 +15,7 @@ describe('#expandMap()', () => {
     err.clear();
     _specs = new models.Specifications();
     // The SHR test namespace used by most tests
-    _specs.namespaces.add(new models.Namespace('shr.core'));
+    _specs.namespaces.add(new models.Namespace('shr.test'));
     // A core namespace and Coding data element needed by some tests
     _specs.namespaces.add(new models.Namespace('shr.core'));
     _specs.dataElements.add(new models.DataElement(id('shr.core', 'Coding'), false));
