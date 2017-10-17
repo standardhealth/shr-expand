@@ -180,6 +180,7 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(
       new models.IdentifiableValue(pid('string')).withMinMax(0, 1)
         .withConstraint(new models.CardConstraint(new models.Cardinality(0, 0)))
+        .withInheritance(models.OVERRIDDEN)
       );
     expect(eSubA.fields).to.be.empty;
   });
@@ -208,6 +209,7 @@ describe('#expand()', () => {
           .withOption(new models.IdentifiableValue(pid('string')))
           .withOption(new models.IdentifiableValue(pid('code')))
         .withConstraint(new models.CardConstraint(new models.Cardinality(0, 0)))
+        .withInheritance(models.OVERRIDDEN)
       );
     expect(eSubA.fields).to.be.empty;
   });
@@ -253,6 +255,7 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(
       new models.IdentifiableValue(pid('string')).withMinMax(0, 1)
         .withConstraint(new models.CardConstraint(new models.Cardinality(1, 1)))
+        .withInheritance(models.OVERRIDDEN)
     );
     expect(eSubA.fields).to.be.empty;
   });
@@ -1447,6 +1450,7 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(
       new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(1, 1)
         .withConstraint(new models.ValueSetConstraint('http://foo.org', [pid('code')]))
+        .withInheritance(models.OVERRIDDEN)
       );
     expect(eSubA.fields).to.be.empty;
   });
@@ -1769,6 +1773,7 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(
       new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(1, 1)
         .withConstraint(new models.CodeConstraint(new models.Concept('http://foo.org/codes', 'bar', 'FooBar'), [id('shr.core', 'Coding')]))
+        .withInheritance(models.OVERRIDDEN)
       );
     expect(eSubA.fields).to.be.empty;
   });
