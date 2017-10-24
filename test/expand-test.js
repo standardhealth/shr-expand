@@ -2398,6 +2398,63 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(new models.IdentifiableValue(pid('string')).withMinMax(0, 1).withInheritance(models.INHERITED)); // No constraint
     expect(eSubA.fields).to.be.empty;
   });
+
+  it('should properly deal with inherited TBD values', () => {
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withValue(new models.TBD('Not ready yet!')
+      .withMinMax(1, 1)
+    );
+    let subA = new models.DataElement(id('shr.test', 'SubA'), true)
+      .withBasedOn(id('shr.test', 'A'))
+      .withValue(new models.TBD('Almost ready!')
+      .withMinMax(1, 1)
+    );
+    let subA2 = new models.DataElement(id('shr.test', 'SubA2'), true)
+      .withBasedOn(id('shr.test', 'A'));
+    add(a, subA, subA2);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eSubA = findExpanded('shr.test', 'SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+        new models.TBD('Almost ready!').withMinMax(1, 1)
+    );
+
+    const eSubA2 = findExpanded('shr.test', 'SubA2');
+    expect(eSubA2.identifier).to.eql(id('shr.test', 'SubA2'));
+    expect(eSubA2.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA2.value).to.eql(
+        new models.TBD('Not ready yet!')
+            .withInheritance(models.INHERITED).withMinMax(1, 1)
+    );
+  });
+
+  it('should report an error when overriding a value with a TBD', () => {
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+        .withValue(new models.IdentifiableValue(pid('string')).withMinMax(1, 1)
+    );
+    let subA = new models.DataElement(id('shr.test', 'SubA'), true)
+        .withBasedOn(id('shr.test', 'A'))
+        .withValue(new models.TBD('Almost ready!')
+            .withMinMax(1, 1)
+    );
+    add(a, subA);
+
+    doExpand();
+
+    expect(err.errors()).to.have.length(1);
+    expect(err.errors()[0].msg).to.contain('Cannot override').and.to.contain('string').and.to.contain('TBD')
+    const eSubA = findExpanded('shr.test', 'SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.eql(
+      new models.IdentifiableValue(pid('string')).withMinMax(1, 1)
+        .withInheritance(models.INHERITED)
+    );
+  });
 });
 
 // Shorthand Identifier constructor for more concise code
