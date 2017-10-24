@@ -887,7 +887,7 @@ shr-models@^5.1.0:
 
 "shr-models@https://github.com/standardhealth/shr-models#model-inheritance":
   version "5.1.0"
-  resolved "https://github.com/standardhealth/shr-models#6e7d731f95f4208592a952a7f44913614400fee0"
+  resolved "https://github.com/standardhealth/shr-models#2951eba68159ee5892aa453f26afc2208094f75b"
 
 shr-test-helpers@^5.0.1:
   version "5.0.1"
