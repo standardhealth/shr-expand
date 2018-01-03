@@ -800,6 +800,39 @@ describe('#expand()', () => {
     expect(eSubX.fields).to.be.empty;
   });
 
+  it('should allow sub-type value to narrow a choice to a single element that is a sub-type of one of the choices', function() {
+    let a = new models.DataElement(id('shr.test', 'A'), true);
+    let b = new models.DataElement(id('shr.test', 'B'), true);
+    let subB = new models.DataElement(id('shr.test', 'SubB'), true).withBasedOn(id('shr.test', 'B'));
+    let x = new models.DataElement(id('shr.test', 'X'), true)
+      .withValue(
+        new models.ChoiceValue().withMinMax(0, 1)
+          .withOption(new models.IdentifiableValue(id('shr.test', 'A')))
+          .withOption(new models.IdentifiableValue(id('shr.test', 'B')))
+      );
+    let subX = new models.DataElement(id('shr.test', 'SubX'), true)
+      .withBasedOn(id('shr.test', 'X'))
+      .withValue(
+        new models.IdentifiableValue(id('shr.test', 'SubB'))
+      );
+    add(a, b, subB, x, subX);
+
+    doExpand();
+
+    expect(err.errors()).to.eql([]);
+    const eSubX = findExpanded('shr.test', 'SubX');
+    expect(eSubX.identifier).to.eql(id('shr.test', 'SubX'));
+    expect(eSubX.basedOn).to.have.length(1);
+    expect(eSubX.basedOn[0]).to.eql(id('shr.test', 'X'));
+    expect(eSubX.value).to.eql(
+      new models.IdentifiableValue(id('shr.test', 'B'))
+        .withMinMax(0, 1)
+        .withConstraint(new models.TypeConstraint(id('shr.test', 'SubB'), [], false))
+        .withInheritance(models.OVERRIDDEN)
+    );
+    expect(eSubX.fields).to.be.empty;
+  });
+
   it('should allow sub-type value to narrow a choice to a choice subset', function() {
     let a = new models.DataElement(id('shr.test', 'A'), true);
     let b = new models.DataElement(id('shr.test', 'B'), true);
@@ -915,6 +948,58 @@ describe('#expand()', () => {
         .withOption(new models.IdentifiableValue(id('shr.test', 'C'))
           .withConstraint(new models.ValueSetConstraint('http://foo.org', [id('shr.core', 'CodeableConcept')]))
         )
+        .withMinMax(0, 1)
+        .withInheritance(models.OVERRIDDEN)
+    );
+    expect(eSubX.fields).to.be.empty;
+  });
+
+  it('should allow sub-type value to narrow a choice to a choice subset with sub-types of original choice', function() {
+    let a = new models.DataElement(id('shr.test', 'A'), true);
+    let subA = new models.DataElement(id('shr.test', 'SubA'), true).withBasedOn(id('shr.test', 'A'));
+    let subA2 = new models.DataElement(id('shr.test', 'SubA2'), true).withBasedOn(id('shr.test', 'A'));
+    let b = new models.DataElement(id('shr.test', 'B'), true);
+    let c = new models.DataElement(id('shr.test', 'C'), true);
+    let subC = new models.DataElement(id('shr.test', 'SubC'), true).withBasedOn(id('shr.test', 'C'));
+    let d = new models.DataElement(id('shr.test', 'D'), true);
+    let x = new models.DataElement(id('shr.test', 'X'), true)
+      .withValue(
+        new models.ChoiceValue().withMinMax(0, 1)
+          .withOption(new models.IdentifiableValue(id('shr.test', 'A')))
+          .withOption(new models.IdentifiableValue(id('shr.test', 'B')))
+          .withOption(new models.IdentifiableValue(id('shr.test', 'C')))
+          .withOption(new models.IdentifiableValue(id('shr.test', 'D')))
+      );
+    let subX = new models.DataElement(id('shr.test', 'SubX'), true)
+      .withBasedOn(id('shr.test', 'X'))
+      .withValue(
+        new models.ChoiceValue()
+          .withOption(new models.IdentifiableValue(id('shr.test', 'SubA')))
+          .withOption(new models.IdentifiableValue(id('shr.test', 'SubA2')))
+          .withOption(new models.IdentifiableValue(id('shr.test', 'SubC')))
+          .withOption(new models.IdentifiableValue(id('shr.test', 'D')))
+      );
+    add(a, subA, subA2, b, c, subC, d, x, subX);
+
+    doExpand();
+
+    expect(err.errors()).to.eql([]);
+    const eSubX = findExpanded('shr.test', 'SubX');
+    expect(eSubX.identifier).to.eql(id('shr.test', 'SubX'));
+    expect(eSubX.basedOn).to.have.length(1);
+    expect(eSubX.basedOn[0]).to.eql(id('shr.test', 'X'));
+    expect(eSubX.value).to.eql(
+      new models.ChoiceValue()
+        .withOption(new models.IdentifiableValue(id('shr.test', 'A'))
+          .withConstraint(new models.TypeConstraint(id('shr.test', 'SubA'), [], false))
+        )
+        .withOption(new models.IdentifiableValue(id('shr.test', 'A'))
+          .withConstraint(new models.TypeConstraint(id('shr.test', 'SubA2'), [], false))
+        )
+        .withOption(new models.IdentifiableValue(id('shr.test', 'C'))
+          .withConstraint(new models.TypeConstraint(id('shr.test', 'SubC'), [], false))
+        )
+        .withOption(new models.IdentifiableValue(id('shr.test', 'D')))
         .withMinMax(0, 1)
         .withInheritance(models.OVERRIDDEN)
     );
