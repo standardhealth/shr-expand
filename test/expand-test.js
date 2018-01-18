@@ -198,11 +198,13 @@ describe('#expand()', () => {
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
     expect(eSubA.value).not.to.be.instanceof(models.IncompleteValue);
     expect(eSubA.value).to.eql(
-      new models.IdentifiableValue(pid('string')).withMinMax(0, 1)
-      .withInheritedFrom(a)  
-      .withConstraint(new models.CardConstraint(new models.Cardinality(0, 0)))
+      new models.IdentifiableValue(pid('string'))
+        .withCard(new models.Cardinality(0, 1)
+          .addHistory(new models.Cardinality(0, 1), a.identifier.fqn))
+        .withConstraint(new models.CardConstraint(new models.Cardinality(0, 0)))
+        .withInheritedFrom(a)
         .withInheritance(models.OVERRIDDEN)
-      );
+    );
     expect(eSubA.fields).to.be.empty;
   });
 
@@ -226,13 +228,15 @@ describe('#expand()', () => {
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
     expect(eSubA.value).not.to.be.instanceof(models.IncompleteValue);
     expect(eSubA.value).to.eql(
-      new models.ChoiceValue().withMinMax(0, 1)
-      .withInheritedFrom(a)    
-      .withOption(new models.IdentifiableValue(pid('string')))
-          .withOption(new models.IdentifiableValue(pid('code')))
+      new models.ChoiceValue()
+        .withCard(new models.Cardinality(0, 1)
+          .addHistory(new models.Cardinality(0, 1), a.identifier.fqn))
+        .withInheritedFrom(a)
+        .withOption(new models.IdentifiableValue(pid('string')))
+        .withOption(new models.IdentifiableValue(pid('code')))
         .withConstraint(new models.CardConstraint(new models.Cardinality(0, 0)))
         .withInheritance(models.OVERRIDDEN)
-      );
+    );
     expect(eSubA.fields).to.be.empty;
   });
 
@@ -277,9 +281,9 @@ describe('#expand()', () => {
     expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
     expect(eSubA.value).to.eql(
-      new models.IdentifiableValue(pid('string')).withMinMax(0, 1)
-      .withInheritedFrom(a)  
-      .withConstraint(new models.CardConstraint(new models.Cardinality(1, 1)))
+      new models.IdentifiableValue(pid('string')).withCard(new models.Cardinality(0, 1).addHistory(new models.Cardinality(0, 1), a.identifier.fqn))
+        .withInheritedFrom(a)
+        .withConstraint(new models.CardConstraint(new models.Cardinality(1, 1)))
         .withInheritance(models.OVERRIDDEN)
     );
     expect(eSubA.fields).to.be.empty;
@@ -301,7 +305,7 @@ describe('#expand()', () => {
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
     expect(eSubA.value).to.be.undefined;
     expect(eSubA.fields).to.eql([
-      new models.IdentifiableValue(id('shr.test', 'AFieldA')).withMinMax(0, 5)
+      new models.IdentifiableValue(id('shr.test', 'AFieldA')).withCard(new models.Cardinality(0, 5).addHistory(new models.Cardinality(0, 5), a.identifier.fqn))
         .withConstraint(new models.CardConstraint(new models.Cardinality(1, 3)))
         .withInheritance(models.OVERRIDDEN)
         .withInheritedFrom(a)
@@ -3039,9 +3043,9 @@ describe('#expand()', () => {
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
     expect(eSubA.value).to.eql(
       new models.IdentifiableValue(pid('boolean')).withMinMax(0, 1)
-      .withInheritedFrom(a)  
-      .withConstraint(new models.BooleanConstraint(true))
+        .withInheritedFrom(a)
         .withInheritance(models.INHERITED)
+        .withConstraint(new models.BooleanConstraint(true))
     );
     expect(eSubA.fields).to.be.empty;
   });
