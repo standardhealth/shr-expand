@@ -235,7 +235,8 @@ describe('#expand()', () => {
         .withInheritedFrom(a.identifier)
         .withOption(new models.IdentifiableValue(pid('string')))
         .withOption(new models.IdentifiableValue(pid('code')))
-        .withConstraint(new models.CardConstraint(new models.Cardinality(0, 0)))
+        .withConstraint(new models.CardConstraint(new models.Cardinality(0, 0))
+           .withLastModifiedBy(subA.identifier))
         .withInheritance(models.OVERRIDDEN)
     );
     expect(eSubA.fields).to.be.empty;
