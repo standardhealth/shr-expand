@@ -422,10 +422,11 @@ describe('#expand()', () => {
       new models.IdentifiableValue(aVal.identifier).withMinMax(0, 1)
         .withConstraint(new models.CardConstraint(new models.Cardinality(1), [pid('decimal')]))
       );
-    add(a, subA);
+    add(aVal, a, subA);
 
     doExpand();
 
+    console.log(err.errors());
     expect(err.errors()).to.have.length(1);
     expect(err.errors()[0].msg).to.contain('cardinality').and.to.contain('1..1').and.to.contain('1..*');
     const eSubA = findExpanded('shr.test', 'SubA');
@@ -508,7 +509,7 @@ describe('#expand()', () => {
         new models.IdentifiableValue(aVal.identifier).withMinMax(0, 1)
           .withConstraint(new models.CardConstraint(new models.Cardinality(1), [pid('decimal')]))
       );
-    add(a, subA);
+    add(aVal, a, subA);
 
     doExpand();
 
