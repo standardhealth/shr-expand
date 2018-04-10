@@ -1613,6 +1613,40 @@ describe('#expand()', () => {
     );
   });
 
+  it('should support putting VS constraints on an inherited includes type field', () => {
+    let b = new models.DataElement(id('shr.test', 'B'), true);  //e.g. PanelMembers.Observation
+    let subB = new models.DataElement(id('shr.test', 'subB'), true) //e.g. BreastTumorCategory, BreastNodeCategory,etc.
+      .withBasedOn(id('shr.test', 'B'))
+      .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withField(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(0, 1))));
+    let subA = new models.DataElement(id('shr.test', 'subA'), true) //e.g. BreastCancerStage
+      .withBasedOn(id('shr.test', 'A'))
+      .withField(new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(new models.ValueSetConstraint('http://foo.org').withPath([id('shr.test', 'subB')]))
+    );
+
+    add(b, subB, a, subA);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eSubA = findExpanded('shr.test', 'subA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'subA'));
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([
+      new models.IdentifiableValue((id('shr.test', 'B'))).withMinMax(0, 1)
+        .withConstraint(new models.IncludesTypeConstraint(id('shr.test', 'subB'), new models.Cardinality(0, 1))
+          .withLastModifiedBy(id('shr.test', 'A')))
+        .withConstraint(new models.ValueSetConstraint('http://foo.org').withPath([id('shr.test', 'subB'),id('shr.core', 'Coding')])
+          .withLastModifiedBy(id('shr.test', 'subA')))
+        .withInheritance(models.OVERRIDDEN)
+        .withInheritedFrom(a.identifier)
+    ]
+    );
+  });
+
   it('should allow fields to includes types with properly fitting cardinality', () => {
     let b = new models.DataElement(id('shr.test', 'B'), true)  //e.g. Observation
       .withValue(new models.IdentifiableValue(id('shr.core', 'Coding')).withMinMax(1));
