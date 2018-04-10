@@ -426,7 +426,6 @@ describe('#expand()', () => {
 
     doExpand();
 
-    console.log(err.errors());
     expect(err.errors()).to.have.length(1);
     expect(err.errors()[0].msg).to.contain('cardinality').and.to.contain('1..1').and.to.contain('1..*');
     const eSubA = findExpanded('shr.test', 'SubA');
