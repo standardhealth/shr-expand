@@ -778,11 +778,11 @@ describe('#expand()', () => {
           .withConstraint(new models.TypeConstraint(id('shr.test', 'SubB')))
       );
     let subSubA = new models.DataElement(id('shr.test', 'SubSubA'), true)
-    .withBasedOn(id('shr.test', 'SubA'))
-    .withField(
-      new models.IdentifiableValue(id('shr.test', 'SubB')).withMinMax(0, 1)
-        .withConstraint(new models.TypeConstraint(id('shr.test', 'SubSubB')))
-    );
+      .withBasedOn(id('shr.test', 'SubA'))
+      .withField(
+        new models.IdentifiableValue(id('shr.test', 'SubB')).withMinMax(0, 1)
+          .withConstraint(new models.TypeConstraint(id('shr.test', 'SubSubB')))
+      );
     add(b, subB, subSubB, a, subA, subSubA);
 
     doExpandWithConstraintHistory();
