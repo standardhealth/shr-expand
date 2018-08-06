@@ -701,6 +701,37 @@ describe('#expand()', () => {
     ]);
   });
 
+  it('should allow non-ref type constraints on ref fields and convert to ref', () => {
+    let b = new models.DataElement(id('shr.test', 'B'), true)
+      .withField(new models.IdentifiableValue(pid('string')).withMinMax(0, 1));
+    let subB = new models.DataElement(id('shr.test', 'SubB'), true)
+      .withBasedOn(id('shr.test', 'B'));
+    let a = new models.DataElement(id('shr.test', 'A'), true)
+      .withField(new models.RefValue(id('shr.test', 'B')).withMinMax(0, 1));
+    let subA = new models.DataElement(id('shr.test', 'SubA'), true)
+      .withBasedOn(id('shr.test', 'A'))
+      .withField(
+        new models.IdentifiableValue(id('shr.test', 'B')).withMinMax(0, 1)
+          .withConstraint(new models.TypeConstraint(id('shr.test', 'SubB')))
+      );
+    add(b, subB, a, subA);
+
+    doExpand();
+
+    expect(err.hasErrors()).to.be.false;
+    const eSubA = findExpanded('shr.test', 'SubA');
+    expect(eSubA.identifier).to.eql(id('shr.test', 'SubA'));
+    expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
+    expect(eSubA.value).to.be.undefined;
+    expect(eSubA.fields).to.eql([
+      new models.RefValue(id('shr.test', 'B')).withMinMax(0, 1)
+        .withConstraint(new models.TypeConstraint(id('shr.test', 'SubB'))
+          .withLastModifiedBy(id('shr.test', 'SubA')))
+        .withInheritance(models.OVERRIDDEN)
+        .withInheritedFrom(a.identifier)
+    ]);
+  });
+
   it('should make \'value type\' constraints on fields explicit', () => {
     let b = new models.DataElement(id('shr.test', 'B'), true)
       .withValue(new models.IdentifiableValue(pid('string')).withMinMax(0, 1));
