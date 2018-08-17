@@ -204,7 +204,8 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(
       new models.IdentifiableValue(pid('string'))
         .withCard(new models.Cardinality(0, 1)
-          .withHistory(new models.Cardinality(0, 1).withSource(a.identifier)))
+          .withHistory(new models.Cardinality(0, 1).withSource(a.identifier))
+          .withHistory(new models.Cardinality(0, 0).withSource(subA.identifier)))
         .withConstraint(new models.CardConstraint(new models.Cardinality(0, 0))
           .withLastModifiedBy(subA.identifier))
         .withInheritedFrom(a.identifier)
@@ -235,7 +236,8 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(
       new models.ChoiceValue()
         .withCard(new models.Cardinality(0, 1)
-          .withHistory(new models.Cardinality(0, 1).withSource(a.identifier)))
+          .withHistory(new models.Cardinality(0, 1).withSource(a.identifier))
+          .withHistory(new models.Cardinality(0, 0).withSource(subA.identifier)))
         .withInheritedFrom(a.identifier)
         .withOption(new models.IdentifiableValue(pid('string')))
         .withOption(new models.IdentifiableValue(pid('code')))
@@ -289,7 +291,8 @@ describe('#expand()', () => {
     expect(eSubA.value).to.eql(
       new models.IdentifiableValue(pid('string'))
         .withCard(new models.Cardinality(0, 1)
-          .withHistory(new models.Cardinality(0, 1).withSource(a.identifier)))
+          .withHistory(new models.Cardinality(0, 1).withSource(a.identifier))
+          .withHistory(new models.Cardinality(1, 1).withSource(subA.identifier)))
         .withInheritedFrom(a.identifier)
         .withConstraint(new models.CardConstraint(new models.Cardinality(1, 1))
           .withLastModifiedBy(subA.identifier))
@@ -316,7 +319,8 @@ describe('#expand()', () => {
     expect(eSubA.fields).to.eql([
       new models.IdentifiableValue(id('shr.test', 'AFieldA'))
         .withCard(new models.Cardinality(0, 5)
-          .withHistory(new models.Cardinality(0, 5).withSource(a.identifier)))
+          .withHistory(new models.Cardinality(0, 5).withSource(a.identifier))
+          .withHistory(new models.Cardinality(1, 3).withSource(subA.identifier)))
         .withConstraint(new models.CardConstraint(new models.Cardinality(1, 3))
           .withLastModifiedBy(id('shr.test', 'SubA')))
         .withInheritance(models.OVERRIDDEN)
@@ -794,7 +798,7 @@ describe('#expand()', () => {
       .withInheritance(models.OVERRIDDEN)
       .withInheritedFrom(a.identifier);
     expectedField.constraintHistory.add(
-      new models.TypeConstraint(id('shr.test', 'SubB')).withLastModifiedBy(id('shr.test', 'SubA')),
+      new models.TypeConstraint(id('shr.test', 'SubB')),
       id('shr.test', 'SubA')
     );
     expectedField.constraintHistory.add(
@@ -3284,6 +3288,7 @@ describe('#expand()', () => {
     expect(eSubA.basedOn).to.eql([id('shr.test', 'A')]);
     expect(eSubA.value).to.eql(
       new models.TBD('Almost ready!').withMinMax(1, 1)
+      .withInheritance(models.OVERRIDDEN)
       .withInheritedFrom(a.identifier)
     );
 
