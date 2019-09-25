@@ -1595,7 +1595,8 @@ describe('#expand()', () => {
     doExpand();
 
     expect(err.errors()).to.have.length(1);
-    expect(err.errors()[0].msg).to.contain('type').and.to.contain('decimal');
+    expect(err.errors()[0].msg).to.eql('12012');
+    expect(err.errors()[0].name1).to.eql('X');
   });
 
   // Valid Includes Type Constraints
